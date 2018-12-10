@@ -1,0 +1,40 @@
+<LinearLayout
+    style="@style/StandardLinearLayout"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditText
+        android:minWidth="100dp"
+        android:paddingTop="20dp"
+        style="@style/BigInputText"
+        android:digits=". 0123456789"
+        android:inputType="numberDecimal"
+        android:id="@+id/fiatInputAmount"
+        android:focusableInTouchMode="true"/>
+
+    <TextView
+        style="@style/StdText"
+        android:id="@+id/hintFiatDenom"
+        android:layout_width="fill_parent"/>
+
+    <TextView
+        android:text="="
+        style="@style/StdText"
+        android:paddingTop="15dp"
+        android:layout_width="wrap_content"/>
+
+    <EditText
+        android:minWidth="100dp"
+        android:focusable="true"
+        style="@style/BigInputText"
+        android:id="@+id/inputAmount"
+        android:digits=". 0123456789"
+        android:inputType="numberDecimal"/>
+
+    <TextView
+        style="@style/StdText"
+        android:id="@+id/hintDenom"
+        android:paddingBottom="25dp"
+        android:layout_width="fill_parent"/>
+
+    <View style="@style/GrayDivider"/>
+</LinearLayout>
