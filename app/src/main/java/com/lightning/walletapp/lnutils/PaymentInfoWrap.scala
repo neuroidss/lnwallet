@@ -189,7 +189,7 @@ object PaymentInfoWrap extends PaymentInfoBag with ChannelListener { me =>
       app.kit.wallet.removeWatchedScripts(app.kit fundingPubScript wbr)
       db.change(ChannelTable.killSql, wbr.commitments.channelId)
 
-    case (_, close: ClosingData, _: CMDBestHeight) if close.isOutdated =>
+    case (_, close: ClosingData, _: CMDBestHeight) if close.canBeRemoved =>
       app.kit.wallet.removeWatchedScripts(app.kit closingPubKeyScripts close)
       app.kit.wallet.removeWatchedScripts(app.kit fundingPubScript close)
       db.change(RevokedInfoTable.killSql, close.commitments.channelId)

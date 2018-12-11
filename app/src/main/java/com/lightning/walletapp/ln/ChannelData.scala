@@ -120,7 +120,7 @@ case class ClosingData(announce: NodeAnnouncement,
     }
   }
 
-  def isOutdated: Boolean = {
+  def canBeRemoved: Boolean = {
     val allConfirmedOrDead = bestClosing match {
       case MutualCommitPublished(mutualTx) => getStatus(mutualTx.txid) match { case cfs \ isDead => cfs > minDepth || isDead }
       case info => info.getState.map(state => state.txn.txid) map getStatus forall { case cfs \ isDead => cfs > minDepth || isDead }
@@ -270,7 +270,7 @@ case class LocalParams(maxHtlcValueInFlightMsat: UInt64, channelReserveSat: Long
 
 case class WaitingForRevocation(nextRemoteCommit: RemoteCommit, sent: CommitSig, localCommitIndexSnapshot: Long)
 case class LocalCommit(index: Long, spec: CommitmentSpec, htlcTxsAndSigs: Seq[HtlcTxAndSigs], commitTx: CommitTx)
-case class RemoteCommit(index: Long, spec: CommitmentSpec, txid: BinaryData, txOpt: Option[Transaction], remotePerCommitmentPoint: Point) // TODO: remove later
+case class RemoteCommit(index: Long, spec: CommitmentSpec, txOpt: Option[Transaction], remotePerCommitmentPoint: Point)
 case class HtlcTxAndSigs(txinfo: TransactionWithInputInfo, localSig: BinaryData, remoteSig: BinaryData)
 case class Changes(proposed: LNMessageVector, signed: LNMessageVector, acked: LNMessageVector)
 
@@ -417,7 +417,7 @@ object Commitments {
     val remoteChanges1 = c.remoteChanges.copy(acked = Vector.empty, signed = c.remoteChanges.acked)
     val localChanges1 = c.localChanges.copy(proposed = Vector.empty, signed = c.localChanges.proposed)
     val commitSig = CommitSig(c.channelId, Scripts.sign(c.localParams.fundingPrivKey)(remoteCommitTx), htlcSigs.toList)
-    val remoteCommit1 = RemoteCommit(c.remoteCommit.index + 1, spec, remoteCommitTx.tx.txid, Some(remoteCommitTx.tx), remoteNextPerCommitmentPoint)
+    val remoteCommit1 = RemoteCommit(c.remoteCommit.index + 1, spec, Some(remoteCommitTx.tx), remoteNextPerCommitmentPoint)
     val wait = WaitingForRevocation(nextRemoteCommit = remoteCommit1, commitSig, localCommitIndexSnapshot = c.localCommit.index)
     c.copy(remoteNextCommitInfo = Left(wait), localChanges = localChanges1, remoteChanges = remoteChanges1) -> commitSig
   }
