@@ -52,7 +52,6 @@ object TxWrap {
     val dummyScript = pubKeyScript(randomPrivKey.publicKey, randomPrivKey.publicKey)
     val addrScript = ScriptBuilder.createOutputScript(where).getProgram
     val emptyThreshold = Coin.valueOf(LNParams.minCapacitySat * 2)
-    val suggestedChanSum = Coin.valueOf(5000000L)
     val totalBalance = app.kit.conf1Balance
 
     val candidates = for (idx <- 0 to 10) yield Try {
@@ -84,24 +83,11 @@ object TxWrap {
         // Payee sum may have an excessive amount which should be added to a change sum
         val realChangeSat = change.head.getValue.plus(payee.head.getValue minus sum)
 
-        if (realChangeSat.value > LNParams.maxCapacity.amount) {
-          // Change amount exceeds max chan capacity so lower it down
-          val reducedChangeSum = realChangeSat.minus(suggestedChanSum)
-
-          req.tx.clearOutputs
-          req.tx.addOutput(sum, where)
-          req.tx.addOutput(suggestedChanSum, dummyScript)
-          // Add a real change output with subtracted channel capacity
-          req.tx.addOutput(reducedChangeSum, change.head.getScriptPubKey)
-          suggestedChanSum -> req
-
-        } else {
-          req.tx.clearOutputs
-          req.tx.addOutput(sum, where)
-          // Change becomes a channel capacity here
-          req.tx.addOutput(realChangeSat, dummyScript)
-          realChangeSat -> req
-        }
+        req.tx.clearOutputs
+        req.tx.addOutput(sum, where)
+        // Change becomes a channel capacity here
+        req.tx.addOutput(realChangeSat, dummyScript)
+        realChangeSat -> req
     }
 
     // It may fail here because after filtering we may have no items at all

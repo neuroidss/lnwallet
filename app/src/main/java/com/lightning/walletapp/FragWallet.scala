@@ -502,9 +502,10 @@ class FragWalletWorker(val host: WalletActivity, frag: View) extends SearchBar w
     val rateManager = new RateManager(content) hint baseHint
 
     def makeRequest(sum: MilliSatoshi, preimg: BinaryData) = {
+      val fallbackAddress = Some(app.kit.currentAddress.toString)
+      val routes = chansWithRoutes.filterKeys(estimateCanReceive(_) >= sum.amount).values.toVector
       val info = content.findViewById(R.id.inputDescription).asInstanceOf[EditText].getText.toString.trim
-      val routes = chansWithRoutes.filterKeys(channel => estimateCanReceiveCapped(channel) >= sum.amount).values.toVector
-      val pr = PaymentRequest(chainHash, Some(sum), Crypto sha256 preimg, nodePrivateKey, info, Some(app.kit.currentAddress.toString), routes)
+      val pr = PaymentRequest(chainHash, Some(sum), Crypto sha256 preimg, nodePrivateKey, info, fallbackAddress, routes)
       val rd = emptyRD(pr, sum.amount, useCache = true)
 
       db.change(PaymentTable.newVirtualSql, params = rd.queryText, rd.pr.paymentHash)
@@ -541,17 +542,18 @@ class FragWalletWorker(val host: WalletActivity, frag: View) extends SearchBar w
     else if (!pr.isFresh) app toast dialog_pr_expired
     else {
 
-      // This fetches normal channels which MAY be offline currently
+      val operationalChannels = ChannelManager.chanReports
       val openingChannels = ChannelManager.notClosingOrRefunding.filter(isOpening)
-      val operationalChannels = ChannelManager.notClosingOrRefunding.filter(isOperational)
-      if (operationalChannels.isEmpty && openingChannels.nonEmpty) onFail(app getString err_ln_still_opening)
+      val isStillOpening = operationalChannels.isEmpty && openingChannels.nonEmpty
+
+      if (isStillOpening) onFail(app getString err_ln_still_opening)
       else if (operationalChannels.isEmpty) app toast ln_no_open_chans
       else {
 
         val runnableOpt = onChainRunnable(pr)
         val description = getDescription(pr.description)
-        val maxLocalSend = operationalChannels.map(estimateCanSend).max
-        val maxCappedSend = MilliSatoshi(pr.amount.map(_.amount * 2 min maxHtlcValueMsat) getOrElse maxHtlcValueMsat min maxLocalSend)
+        val maxLocalFinalCanSend = operationalChannels.map(_.estimateFinalCanSend).max
+        val maxCappedSend = MilliSatoshi(pr.amount.map(_.amount * 2 min maxLocalFinalCanSend) getOrElse maxLocalFinalCanSend)
         val baseContent = host.getLayoutInflater.inflate(R.layout.frag_input_fiat_converter, null, false).asInstanceOf[LinearLayout]
         val baseHint = app.getString(amount_hint_can_send).format(denom withSign maxCappedSend)
         val baseTitle = str2View(app.getString(ln_send_title).format(description).html)
@@ -594,7 +596,7 @@ class FragWalletWorker(val host: WalletActivity, frag: View) extends SearchBar w
           case Success(ms) \ _ => rm(alert) {
             me doSend emptyRD(pr, ms.amount, useCache = true)
             // Inform if channels are offline and some wait will happen
-            val isOnline = operationalChannels.exists(_.state == OPEN)
+            val isOnline = operationalChannels.exists(_.chan.state == OPEN)
             if (!isOnline) app toast ln_chan_offline
           }
         }

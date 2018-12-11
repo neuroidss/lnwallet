@@ -61,7 +61,7 @@ case class WaitFundingSignedCore(localParams: LocalParams, channelId: BinaryData
     Commitments(localParams, remoteParams, LocalCommit(index = 0L, localSpec, Nil, signedLocalCommitTx), remoteCommit,
       localChanges = Changes(Vector.empty, Vector.empty, Vector.empty), remoteChanges = Changes(Vector.empty, Vector.empty, Vector.empty),
       localNextHtlcId = 0L, remoteNextHtlcId = 0L, remoteNextCommitInfo = Right(Tools.randomPrivKey.toPoint), localCommitTx.input,
-      remotePerCommitmentSecrets = ShaHashesWithIndex(Map.empty, None), channelId)
+      remotePerCommitmentSecrets = ShaHashesWithIndex(Map.empty, None), channelId, extraHop = None)
 }
 
 case class WaitFundingSignedRemoteData(announce: NodeAnnouncement, core: WaitFundingSignedCore, txHash: BinaryData) extends ChannelData {
@@ -333,7 +333,6 @@ object Commitments {
 
   def sendAdd(c: Commitments, rd: RoutingData) =
     if (rd.firstMsat < c.remoteParams.htlcMinimumMsat) throw CMDAddImpossible(rd, ERR_REMOTE_AMOUNT_LOW)
-    else if (rd.firstMsat > maxHtlcValueMsat) throw CMDAddImpossible(rd, ERR_AMOUNT_OVERFLOW)
     else if (rd.pr.paymentHash.size != 32) throw CMDAddImpossible(rd, ERR_FAILED)
     else {
 

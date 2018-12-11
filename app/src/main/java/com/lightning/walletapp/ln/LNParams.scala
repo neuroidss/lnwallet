@@ -16,19 +16,16 @@ import fr.acinq.eclair.UInt64
 object LNParams { me =>
   type DepthAndDead = (Int, Boolean)
   val chainHash = Block.TestnetGenesisBlock.hash
+  val minHtlcValue = MilliSatoshi(1000L)
   val channelReserveToFundingRatio = 100
+  val minCapacitySat = 300000L
+  val maxCltvDelta = 7 * 144L
+  val maxToSelfDelay = 2016
+  val minFeeratePerKw = 253
+  val dust = Satoshi(2730L)
   val localFeatures = "02"
   val globalFeatures = ""
   val minDepth = 1
-
-  val maxToSelfDelay = 2016
-  val maxCltvDelta = 7 * 144L
-  val minCapacitySat = 300000L
-  final val dust = Satoshi(2730L)
-  final val minFeeratePerKw = 253
-  final val maxHtlcValueMsat = 10000000000L
-  final val maxCapacity = Satoshi(16777215L)
-  final val minHtlcValue = MilliSatoshi(1000L)
 
   var db: LNOpenHelper = _
   var extendedNodeKey: ExtendedPrivateKey = _
@@ -60,7 +57,7 @@ object LNParams { me =>
   def backupFileName = s"blw${chainHash.toString}-${cloudId.toString}.bkup"
   def makeLocalParams(ann: NodeAnnouncement, theirReserve: Long, finalScriptPubKey: BinaryData, idx: Long, isFunder: Boolean) = {
     val Seq(fund, revoke, pay, delay, htlc, sha) = for (ord <- 0L to 5L) yield derivePrivateKey(extendedNodeKey, idx :: ord :: Nil)
-    LocalParams(UInt64(maxHtlcValueMsat), theirReserve, toSelfDelay = if (ann.nodeId == JointNode.jointNodeKey) 2880 else 1440,
+    LocalParams(UInt64(Long.MaxValue), theirReserve, toSelfDelay = if (ann.nodeId == JointNode.jointNodeKey) 2880 else 1440,
       maxAcceptedHtlcs = 25, fund.privateKey, revoke.privateKey, pay.privateKey, delay.privateKey, htlc.privateKey,
       finalScriptPubKey, dust, shaSeed = sha256(sha.privateKey.toBin), isFunder)
   }
@@ -68,7 +65,6 @@ object LNParams { me =>
 
 object AddErrorCodes {
   import com.lightning.walletapp.R.string._
-  val ERR_AMOUNT_OVERFLOW = err_ln_amount_overflow
   val ERR_REMOTE_AMOUNT_HIGH = err_ln_remote_amount_high
   val ERR_REMOTE_AMOUNT_LOW = err_ln_remote_amount_low
   val ERR_TOO_MANY_HTLC = err_ln_too_many

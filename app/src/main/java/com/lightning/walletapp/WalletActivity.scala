@@ -221,7 +221,7 @@ class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
   def goReceivePayment(top: View) = {
     val operationalChannels = ChannelManager.notClosingOrRefunding.filter(isOperational)
     val operationalChannelsWithRoutes: Map[Channel, PaymentRoute] = operationalChannels.flatMap(channelAndHop).toMap
-    val maxCanReceiveMsat = operationalChannelsWithRoutes.keys.map(estimateCanReceiveCapped).reduceOption(_ max _) getOrElse 0L
+    val maxCanReceiveMsat = operationalChannelsWithRoutes.keys.map(estimateCanReceive).reduceOption(_ max _) getOrElse 0L
     val maxCanReceive = MilliSatoshi(maxCanReceiveMsat)
 
     val reserveUnspent = getString(ln_receive_reserve) format coloredOut(-maxCanReceive) // Negate to cancel out a minus

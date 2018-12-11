@@ -106,7 +106,7 @@
     <string name="amount_hint_btc"><![CDATA[Amount in Bitcoin%1$s]]></string>
 
     <string name="amount_hint_can_deliver"><![CDATA[<br><small><font color=#0099FE>can <strong>deliver</strong> %1$s</font></small>]]></string>
-    <string name="amount_hint_newchan"><![CDATA[<br><small>min capacity %1$s<br>max capacity %2$s<br>balance %3$s</small>]]></string>
+    <string name="amount_hint_newchan"><![CDATA[<br><small>min capacity %1$s<br>balance %3$s</small>]]></string>
     <string name="amount_hint_can_receive"><![CDATA[<br><small>can receive %1$s</small>]]></string>
     <string name="amount_hint_can_send"><![CDATA[<br><small>can send %1$s</small>]]></string>
 
@@ -176,9 +176,8 @@
     <string name="ln_no_open_chans">No open channels found</string>
 
     <string name="err_ln_peer_offline">Could not connect to remote peer at %1$s</string>
-    <string name="err_ln_remote_amount_high">Failed because payment amount is too high for your peer to accept</string>
+    <string name="err_ln_remote_amount_high">Failed because total in-flight amount would be too high for your peer to accept</string>
     <string name="err_ln_remote_amount_low">Failed because payment amount is too low for your peer to accept</string>
-    <string name="err_ln_amount_overflow">Failed because payment amount exceeds an allowed maximum</string>
     <string name="err_ln_fulfilled">Failed because this payment has been fulfilled already</string>
     <string name="err_ln_too_many">Failed because too many payments are already in-flight</string>
     <string name="err_ln_frozen">Can not retry this payment because it is frozen</string>

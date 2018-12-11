@@ -696,12 +696,11 @@ object Channel {
   val CLOSING = "CLOSING"
 
   def inFlightHtlcs(chan: Channel) = chan(_.reducedRemoteState.htlcs) getOrElse Set.empty
-  def estimateCanReceiveCapped(chan: Channel) = math.min(estimateCanReceive(chan), LNParams.maxHtlcValueMsat)
-  def estimateCanReceive(chan: Channel) = chan(_.reducedRemoteState.canReceiveMsat) getOrElse 0L
   def estimateCanSend(chan: Channel) = chan(_.reducedRemoteState.canSendMsat) getOrElse 0L
+  def estimateCanReceive(chan: Channel) = chan(_.reducedRemoteState.canReceiveMsat) getOrElse 0L
 
-  def isOpening(chan: Channel): Boolean = chan.data match {
-    case remote: WaitBroadcastRemoteData => remote.fail.isEmpty
+  def isOpening(chan: Channel) = chan.data match {
+    case wbr: WaitBroadcastRemoteData => wbr.fail.isEmpty
     case _: WaitFundingDoneData => true
     case _ => false
   }

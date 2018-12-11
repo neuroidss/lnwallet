@@ -10,7 +10,6 @@ import rx.lang.scala.{Observable => Obs}
 
 import com.lightning.walletapp.ChannelManager
 import com.lightning.walletapp.ln.Tools.none
-import com.lightning.walletapp.ln.LNParams
 import fr.acinq.bitcoin.Crypto.PublicKey
 import com.lightning.walletapp.Utils.app
 import fr.acinq.bitcoin.MilliSatoshi
@@ -64,5 +63,5 @@ case class ChannelBalanceInfo(balance: ChannelBalance, peerNodeId: PublicKey, sh
 
   // We get balance info from our peer so its node key should be contained in Hop
   val hop = Hop(jointNodeKey, shortChannelId, cltvExpiryDelta, htlcMinimumMsat, feeBaseMsat, feeProportionalMillionths)
-  val withoutMaxFee = balance.canSendMsat - feeBaseMsat - LNParams.maxHtlcValueMsat * feeProportionalMillionths / 1000000L
+  val withoutMaxFee = balance.canSendMsat - (feeBaseMsat + balance.canSendMsat * feeProportionalMillionths / 1000000L)
 }
