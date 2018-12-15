@@ -28,7 +28,10 @@ import com.lightning.walletapp.helper.{AwaitService, RichCursor}
 import fr.acinq.bitcoin.{BinaryData, Crypto, MilliSatoshi, Satoshi}
 import android.app.{Application, NotificationChannel, NotificationManager}
 import com.lightning.walletapp.lnutils.JsonHttpUtils.{obsOnIO, pickInc, repeat}
+import com.github.douglasjunior.bluetoothclassiclibrary.{BluetoothConfiguration, BluetoothService}
+
 import com.lightning.walletapp.ln.wire.LightningMessageCodecs.revocationInfoCodec
+import com.github.douglasjunior.bluetoothlowenergylibrary.BluetoothLeService
 import org.bitcoinj.core.listeners.PeerDisconnectedEventListener
 import com.lightning.walletapp.lnutils.olympus.OlympusWrap
 import com.lightning.walletapp.lnutils.olympus.TxUploadAct
@@ -37,6 +40,7 @@ import org.bitcoinj.wallet.KeyChain.KeyPurpose
 import org.bitcoinj.net.discovery.DnsDiscovery
 import org.bitcoinj.wallet.Wallet.BalanceType
 import java.util.Collections.singletonList
+import android.bluetooth.BluetoothDevice
 import fr.acinq.bitcoin.Hash.Zeroes
 import org.bitcoinj.uri.BitcoinURI
 import java.net.InetSocketAddress
@@ -45,6 +49,7 @@ import android.widget.Toast
 import scodec.DecodeResult
 import android.os.Build
 import scala.util.Try
+import java.util.UUID
 import java.io.File
 
 
@@ -89,10 +94,24 @@ class WalletApp extends Application { me =>
     Utils.fiatCode = prefs.getString(AbstractKit.FIAT_TYPE, "usd")
     Utils.denom = Utils denoms prefs.getInt(AbstractKit.DENOM_TYPE, 0)
 
+    // Setup notifications for foreground service
     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
       val importanceLevel = NotificationManager.IMPORTANCE_DEFAULT
       val srvChan = new NotificationChannel(AwaitService.CHANNEL_ID, "NC", importanceLevel)
       me getSystemService classOf[NotificationManager] createNotificationChannel srvChan
+    }
+
+    // Setup bluetooth
+    BluetoothService init new BluetoothConfiguration {
+      uuidCharacteristic = UUID fromString "baf8c6c8-3c21-4a9f-b632-6d58c1029e9e"
+      uuidService = UUID fromString "e5810a72-73bc-499a-8c16-fbb9aef0a5f3"
+      bluetoothServiceClass = classOf[BluetoothLeService]
+      transport = BluetoothDevice.TRANSPORT_LE
+      deviceName = "BLW Bluetooth"
+      characterDelimiter = '\n'
+      bufferSize = 1024
+      context = me
+      uuid = null
     }
   }
 
