@@ -85,9 +85,9 @@
     <string name="sets_set_fiat">Выбрать валюту</string>
     <string name="sets_choose_unit">Выбрать Биткоин-юнит</string>
     <string name="sets_manage_olympus">Настроить бекап-сервера</string>
-    <string name="sets_bluetooth">Подключить Bluetooth-дивайс</string>
     <string name="sets_chan_recover">Восстановитель каналов</string>
     <string name="sets_migrator">Сохранить файл-снапшот</string>
+    <string name="sets_bluetooth">Настроить Bluetooth</string>
     <string name="sets_mnemonic">Мнемонический код</string>
     <string name="sets_rescan">Рескан блокчейна</string>
 
@@ -119,7 +119,6 @@
     <string name="dialog_max">Max</string>
     <string name="dialog_ok">OK</string>
 
-    <!-- notifications -->
     <array name="info_progress">
         <item>Синхронизация завершена</item>
         <item><![CDATA[<font color=#E68A00>Синхронизация %1$d день</font>]]></item>
@@ -127,10 +126,13 @@
         <item><![CDATA[<font color=#E68A00>Синхронизация %1$d дней</font>]]></item>
     </array>
 
-    <string name="btc_empty">Нет монет на цепи</string>
-    <string name="ln_empty">Нет монет в каналах</string>
     <string name="btc_status_operational">Кошелек онлайн</string>
     <string name="btc_status_connecting"><![CDATA[<font color=#E68A00>Поиск узлов&#8230;</font>]]></string>
+    <string name="bluetooth_scanning_happening">Идет поиск устройств&#8230;</string>
+    <string name="bluetooth_scanning_complete">Поиск устройств завершен</string>
+
+    <string name="btc_empty">Нет монет на цепи</string>
+    <string name="ln_empty">Нет монет в каналах</string>
     <string name="ln_incoming_title"><![CDATA[<font color=#0099FE><strong>Платеж-Молния</strong></font><br>%1$s<br><br>получено %2$s<br><small>%3$s по текущему курсу</small>]]></string>
     <string name="ln_outgoing_title_no_fee"><![CDATA[<font color=#0099FE><strong>Платеж-Молния</strong></font><br>%1$s<br><br>отправлено %2$s<br><small>%3$s по текущему курсу</small>]]></string>
     <string name="ln_outgoing_title"><![CDATA[<font color=#0099FE><strong>Платеж-Молния</strong></font><br>%1$s<br><br>отправлено %2$s<br><small>%3$s по текущему курсу</small><br>комса %4$s = %5$.2f%%]]></string>

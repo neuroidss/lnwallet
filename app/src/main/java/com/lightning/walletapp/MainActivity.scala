@@ -47,10 +47,11 @@ class MainActivity extends NfcReaderActivity with TimerActivity { me =>
     if (requestCode == 101 & resultCode == Activity.RESULT_OK) restoreFromZygote(resultData)
 
   def INIT(state: Bundle) = {
-    runAnd(me setContentView R.layout.activity_main)(me initNfc state)
+    me setContentView R.layout.activity_main
     MainActivity.proceedOnSuccess = UITask { me exitTo MainActivity.wallet }
     MainActivity.actOnError = { case error => UITask(throw error).run }
     Utils clickableTextField findViewById(R.id.mainGreetings)
+    initNfc(state)
   }
 
   // NFC AND SHARE

@@ -38,6 +38,7 @@ import org.bitcoinj.net.discovery.DnsDiscovery
 import org.bitcoinj.wallet.Wallet.BalanceType
 import java.util.Collections.singletonList
 import fr.acinq.bitcoin.Hash.Zeroes
+import me.aflak.bluetooth.Bluetooth
 import org.bitcoinj.uri.BitcoinURI
 import java.net.InetSocketAddress
 import scodec.bits.BitVector
@@ -53,6 +54,7 @@ class WalletApp extends Application { me =>
   lazy val prefs = getSharedPreferences("prefs", Context.MODE_PRIVATE)
   lazy val walletFile = new File(getFilesDir, walletFileName)
   lazy val chainFile = new File(getFilesDir, chainFileName)
+  lazy val bluetooth = new Bluetooth(me)
   var olympus: OlympusWrap = _
   var kit: WalletKit = _
 

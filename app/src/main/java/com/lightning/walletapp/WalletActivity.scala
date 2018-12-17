@@ -132,9 +132,10 @@ class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
   }
 
   def INIT(state: Bundle) = if (app.isAlive) {
-    wrap(me setDetecting true)(me initNfc state)
     me setContentView R.layout.activity_double_pager
     walletPager setAdapter slidingFragmentAdapter
+    setDetecting(true)
+    initNfc(state)
 
     val unknownOrFailed = app.prefs.getLong(AbstractKit.GDRIVE_LAST_SAVE, 0L) <= 0L
     val needsCheck = !GDrive.isMissing(app) && app.prefs.getBoolean(AbstractKit.GDRIVE_ENABLED, true) && unknownOrFailed
