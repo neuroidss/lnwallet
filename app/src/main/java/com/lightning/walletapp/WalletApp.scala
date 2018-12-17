@@ -38,7 +38,6 @@ import org.bitcoinj.net.discovery.DnsDiscovery
 import org.bitcoinj.wallet.Wallet.BalanceType
 import java.util.Collections.singletonList
 import fr.acinq.bitcoin.Hash.Zeroes
-import me.aflak.bluetooth.Bluetooth
 import org.bitcoinj.uri.BitcoinURI
 import java.net.InetSocketAddress
 import scodec.bits.BitVector
@@ -49,12 +48,12 @@ import scala.util.Try
 import java.io.File
 
 
-class WalletApp extends Application { me =>
+class WalletApp extends Application {
   lazy val params = org.bitcoinj.params.TestNet3Params.get
   lazy val prefs = getSharedPreferences("prefs", Context.MODE_PRIVATE)
+  lazy val bluetooth = new me.aflak.bluetooth.Bluetooth(this)
   lazy val walletFile = new File(getFilesDir, walletFileName)
   lazy val chainFile = new File(getFilesDir, chainFileName)
-  lazy val bluetooth = new Bluetooth(me)
   var olympus: OlympusWrap = _
   var kit: WalletKit = _
 
@@ -73,8 +72,8 @@ class WalletApp extends Application { me =>
 
   // Various utilities
 
-  def toast(code: Int): Unit = toast(me getString code)
-  def toast(msg: CharSequence): Unit = Toast.makeText(me, msg, Toast.LENGTH_LONG).show
+  def toast(code: Int): Unit = toast(this getString code)
+  def toast(msg: CharSequence): Unit = Toast.makeText(this, msg, Toast.LENGTH_LONG).show
   def clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE).asInstanceOf[ClipboardManager]
   def plurOrZero(opts: Array[String], num: Long) = if (num > 0) plur(opts, num) format num else opts(0)
   def getBufferTry = Try(clipboardManager.getPrimaryClip.getItemAt(0).getText.toString)
@@ -85,7 +84,7 @@ class WalletApp extends Application { me =>
     if (null == kit || null == olympus || null == db || null == extendedNodeKey) false
     else kit.state match { case STARTING | RUNNING => true case _ => false }
 
-  Utils.appReference = me
+  Utils.appReference = this
   override def onCreate = wrap(super.onCreate) {
     // These cannot be lazy vals because values may change
     Utils.fiatCode = prefs.getString(AbstractKit.FIAT_TYPE, "usd")
@@ -95,13 +94,13 @@ class WalletApp extends Application { me =>
     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
       val importanceLevel = NotificationManager.IMPORTANCE_DEFAULT
       val srvChan = new NotificationChannel(AwaitService.CHANNEL_ID, "NC", importanceLevel)
-      me getSystemService classOf[NotificationManager] createNotificationChannel srvChan
+      this getSystemService classOf[NotificationManager] createNotificationChannel srvChan
     }
   }
 
   def setBuffer(text: String) = {
     val content = ClipData.newPlainText("wallet", text)
-    me toast getString(copied_to_clipboard).format(text)
+    this toast getString(copied_to_clipboard).format(text)
     clipboardManager setPrimaryClip content
   }
 
