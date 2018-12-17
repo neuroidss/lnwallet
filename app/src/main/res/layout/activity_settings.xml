@@ -54,6 +54,13 @@
 
     <Button
         style="@style/TransButton"
+        android:id="@+id/connectBluetooth"
+        android:text="@string/sets_bluetooth"/>
+
+    <View style="@style/GrayDivider"/>
+
+    <Button
+        style="@style/TransButton"
         android:id="@+id/rescanWallet"
         android:text="@string/sets_rescan"/>
 

@@ -12,7 +12,6 @@ import com.lightning.walletapp.lnutils.JsonHttpUtils._
 import com.lightning.walletapp.lnutils.ImplicitConversions._
 import com.lightning.walletapp.lnutils.ImplicitJsonFormats._
 import com.lightning.walletapp.ln.wire.LightningMessageCodecs._
-
 import android.view.{Menu, MenuItem, View}
 import com.lightning.walletapp.lnutils.{RatesSaver, TaskWrap}
 import com.lightning.walletapp.ln.wire.WalletZygote
@@ -31,12 +30,15 @@ import android.net.Uri
 import java.util.Date
 import java.io.File
 
+import android.bluetooth.{BluetoothAdapter, BluetoothDevice}
+
 
 class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
   lazy val gDriveBackups = findViewById(R.id.gDriveBackups).asInstanceOf[CheckBox]
   lazy val gDriveBackupState = findViewById(R.id.gDriveBackupState).asInstanceOf[TextView]
   lazy val exportWalletSnapshot = findViewById(R.id.exportWalletSnapshot).asInstanceOf[Button]
   lazy val chooseBitcoinUnit = findViewById(R.id.chooseBitcoinUnit).asInstanceOf[Button]
+  lazy val connectBluetooth = findViewById(R.id.connectBluetooth).asInstanceOf[Button]
   lazy val recoverFunds = findViewById(R.id.recoverChannelFunds).asInstanceOf[Button]
   lazy val setFiatCurrency = findViewById(R.id.setFiatCurrency).asInstanceOf[Button]
   lazy val manageOlympus = findViewById(R.id.manageOlympus).asInstanceOf[Button]
@@ -143,6 +145,11 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
       lst setAdapter new ArrayAdapter(me, singleChoice, allDenoms)
       lst setOnItemClickListener onTap(updateDenomination)
       lst.setItemChecked(currentDenom, true)
+    }
+
+    connectBluetooth setOnClickListener onButtonTap {
+      val adapter = BluetoothAdapter.getDefaultAdapter
+
     }
 
     manageOlympus setOnClickListener onButtonTap {

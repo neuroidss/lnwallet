@@ -85,6 +85,7 @@
     <string name="sets_set_fiat">Выбрать валюту</string>
     <string name="sets_choose_unit">Выбрать Биткоин-юнит</string>
     <string name="sets_manage_olympus">Настроить бекап-сервера</string>
+    <string name="sets_bluetooth">Подключить Bluetooth-дивайс</string>
     <string name="sets_chan_recover">Восстановитель каналов</string>
     <string name="sets_migrator">Сохранить файл-снапшот</string>
     <string name="sets_mnemonic">Мнемонический код</string>

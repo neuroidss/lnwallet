@@ -89,8 +89,9 @@
     <string name="sets_set_fiat">Set Fiat currency</string>
     <string name="sets_choose_unit">Choose Bitcoin unit</string>
     <string name="sets_manage_olympus">Manage Olympus servers</string>
-    <string name="sets_chan_recover">Olympus channel recovery</string>
+    <string name="sets_chan_recover">Recover lost channel funds</string>
     <string name="sets_migrator">Use wallet migration tool</string>
+    <string name="sets_bluetooth">Connect Bluetooth device</string>
     <string name="sets_mnemonic">View mnemonic phrase</string>
     <string name="sets_rescan">Rescan blockchain</string>
 
