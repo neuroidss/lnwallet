@@ -25,7 +25,7 @@ import java.util.Date
 
 
 class OlympusActivity extends TimerActivity with HumanTimeDisplay { me =>
-  lazy val serverList = findViewById(R.id.serverList).asInstanceOf[RecyclerView]
+  lazy val recyclerList = findViewById(R.id.recyclerList).asInstanceOf[RecyclerView]
   lazy val tokensLeft = getResources getStringArray R.array.olympus_tokens_left
   lazy val host = me
 
@@ -58,7 +58,7 @@ class OlympusActivity extends TimerActivity with HumanTimeDisplay { me =>
   }
 
   def INIT(s: Bundle) = {
-    me setContentView R.layout.activity_olympus
+    me setContentView R.layout.activity_recycler
     me initToolbar findViewById(R.id.toolbar).asInstanceOf[Toolbar]
     getSupportActionBar setTitle sets_manage_olympus
     getSupportActionBar setSubtitle olympus_actions
@@ -69,12 +69,12 @@ class OlympusActivity extends TimerActivity with HumanTimeDisplay { me =>
       override def onItemRemoved(item: Cloud, position: Int) = onUpdate
     }
 
-    serverList setAdapter adapter
-    serverList setHasFixedSize true
-    serverList setLayoutManager new LinearLayoutManager(me)
-    serverList addOnItemTouchListener new RecyclerItemTouchListener(onClick)
+    recyclerList setAdapter adapter
+    recyclerList setHasFixedSize true
+    recyclerList setLayoutManager new LinearLayoutManager(me)
+    recyclerList addOnItemTouchListener new RecyclerItemTouchListener(onClick)
 
-    new GestureManager.Builder(serverList)
+    new GestureManager.Builder(recyclerList)
       .setSwipeEnabled(true).setLongPressDragEnabled(true)
       .setDragFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN)
       .setSwipeFlags(ItemTouchHelper.LEFT).build

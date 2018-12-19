@@ -35,9 +35,11 @@ import java.io.File
 class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
   lazy val gDriveBackups = findViewById(R.id.gDriveBackups).asInstanceOf[CheckBox]
   lazy val gDriveBackupState = findViewById(R.id.gDriveBackupState).asInstanceOf[TextView]
+  lazy val bluetoothConnect = findViewById(R.id.bluetoothConnect).asInstanceOf[CheckBox]
+  lazy val bluetoothState = findViewById(R.id.bluetoothState).asInstanceOf[TextView]
+
   lazy val exportWalletSnapshot = findViewById(R.id.exportWalletSnapshot).asInstanceOf[Button]
   lazy val chooseBitcoinUnit = findViewById(R.id.chooseBitcoinUnit).asInstanceOf[Button]
-  lazy val connectBluetooth = findViewById(R.id.connectBluetooth).asInstanceOf[Button]
   lazy val recoverFunds = findViewById(R.id.recoverChannelFunds).asInstanceOf[Button]
   lazy val setFiatCurrency = findViewById(R.id.setFiatCurrency).asInstanceOf[Button]
   lazy val manageOlympus = findViewById(R.id.manageOlympus).asInstanceOf[Button]
@@ -86,18 +88,23 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
     }
   }
 
-  def onGDrive(cb: View) =
+  def onGDrive(cb: View) = {
+    def check(client: GoogleSignInClient) =
+      obsOnIO.map(_ => GDrive signInAccount me) foreach {
+        case Some(signedInAccount) => checkBackup(signedInAccount)
+        case _ => startActivityForResult(client.getSignInIntent, 102)
+      }
+
     if (gDriveBackups.isChecked) check(GDrive signInAttemptClient me) else {
       app.prefs.edit.putBoolean(AbstractKit.GDRIVE_ENABLED, false).commit
       GDrive.signInAttemptClient(me).revokeAccess
       updateBackupView
     }
+  }
 
-  def check(client: GoogleSignInClient) =
-    obsOnIO.map(_ => GDrive signInAccount me) foreach {
-      case Some(signedInAccount) => checkBackup(signedInAccount)
-      case _ => startActivityForResult(client.getSignInIntent, 102)
-    }
+  def onBluetooth(cb: View) = {
+
+  }
 
   def INIT(s: Bundle) = if (app.isAlive) {
     me setContentView R.layout.activity_settings

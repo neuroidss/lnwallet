@@ -81,6 +81,14 @@
     <string name="gdrive_failed">Не получилось сохранить бекап</string>
     <string name="sets_gdrive">Бекапы каналов в GDrive</string>
 
+    <!-- Bluetooth -->
+    <string name="bluetooth_connected">Подключен %1$s</string>
+    <string name="bluetooth_connecting">Подключение %1$s</string>
+    <string name="bluetooth_failure">Не получилось %1$s</string>
+    <string name="bluetooth_searching">Идет поиск устройств&#8230;</string>
+    <string name="bluetooth_disabled">Bluetooth отключен</string>
+    <string name="bluetooth_done">Поиск устройств завершен</string>
+
     <!-- menu and fab -->
     <string name="sets_set_fiat">Выбрать валюту</string>
     <string name="sets_choose_unit">Выбрать Биткоин-юнит</string>
@@ -126,13 +134,10 @@
         <item><![CDATA[<font color=#E68A00>Синхронизация %1$d дней</font>]]></item>
     </array>
 
-    <string name="btc_status_operational">Кошелек онлайн</string>
-    <string name="btc_status_connecting"><![CDATA[<font color=#E68A00>Поиск узлов&#8230;</font>]]></string>
-    <string name="bluetooth_scanning_happening">Идет поиск устройств&#8230;</string>
-    <string name="bluetooth_scanning_complete">Поиск устройств завершен</string>
-
     <string name="btc_empty">Нет монет на цепи</string>
     <string name="ln_empty">Нет монет в каналах</string>
+    <string name="btc_status_operational">Кошелек онлайн</string>
+    <string name="btc_status_connecting"><![CDATA[<font color=#E68A00>Поиск узлов&#8230;</font>]]></string>
     <string name="ln_incoming_title"><![CDATA[<font color=#0099FE><strong>Платеж-Молния</strong></font><br>%1$s<br><br>получено %2$s<br><small>%3$s по текущему курсу</small>]]></string>
     <string name="ln_outgoing_title_no_fee"><![CDATA[<font color=#0099FE><strong>Платеж-Молния</strong></font><br>%1$s<br><br>отправлено %2$s<br><small>%3$s по текущему курсу</small>]]></string>
     <string name="ln_outgoing_title"><![CDATA[<font color=#0099FE><strong>Платеж-Молния</strong></font><br>%1$s<br><br>отправлено %2$s<br><small>%3$s по текущему курсу</small><br>комса %4$s = %5$.2f%%]]></string>
