@@ -31,8 +31,6 @@ import android.net.Uri
 import java.util.Date
 import java.io.File
 
-import android.bluetooth.{BluetoothAdapter, BluetoothDevice}
-
 
 class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
   lazy val gDriveBackups = findViewById(R.id.gDriveBackups).asInstanceOf[CheckBox]
@@ -146,11 +144,6 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
       lst setAdapter new ArrayAdapter(me, singleChoice, allDenoms)
       lst setOnItemClickListener onTap(updateDenomination)
       lst.setItemChecked(currentDenom, true)
-    }
-
-    connectBluetooth setOnClickListener onButtonTap {
-      val adapter = BluetoothAdapter.getDefaultAdapter
-
     }
 
     manageOlympus setOnClickListener onButtonTap {
