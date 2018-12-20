@@ -8,7 +8,7 @@ import android.content.Intent
 
 
 object AwaitService {
-  val reference = classOf[AwaitService]
+  val classof = classof[AwaitService]
   val AWAITED_AMOUNT = "inputAmount"
   val CHANNEL_ID = "awaitChannelId"
   val CANCEL = "awaitCancel"
@@ -19,7 +19,7 @@ class AwaitService extends Service { me =>
   override def onStartCommand(intent: Intent, flags: Int, id: Int) = {
     if (intent.getAction == AwaitService.CANCEL) stopNotification else {
       val pendingActivity = PendingIntent.getActivity(me, 0, new Intent(me, MainActivity.wallet), 0)
-      val cancelIntent = new Intent(me, AwaitService.reference).setAction(AwaitService.CANCEL)
+      val cancelIntent = new Intent(me, AwaitService.classof).setAction(AwaitService.CANCEL)
       val pendingCancelIntent = PendingIntent.getService(me, 0, cancelIntent, 0)
       val awaitedPaymentSum = intent getStringExtra AwaitService.AWAITED_AMOUNT
 

@@ -145,7 +145,7 @@ class FragWalletWorker(val host: WalletActivity, frag: View) extends SearchBar w
         host stopService host.awaitServiceIntent
 
     override def onProcessSuccess = {
-      case (chan, data: HasCommitments, remoteError: wire.Error) if errorLimit > 0 => UITask {
+      case (chan, _: HasCommitments, remoteError: wire.Error) if errorLimit > 0 => UITask {
         def close(alert: AlertDialog) = rm(alert)(chan process ChannelManager.CMDLocalShutdown)
         val bld = baseBuilder(chan.data.announce.toString.html, remoteError.exception.getMessage)
         mkCheckFormNeutral(alert => rm(alert)(none), none, close, bld, dialog_ok, -1, ln_chan_force)
@@ -619,8 +619,7 @@ class FragWalletWorker(val host: WalletActivity, frag: View) extends SearchBar w
 
   def onChainRunnable(pr: PaymentRequest) =
     for (adr <- pr.fallbackAddress) yield UITask {
-      // This code does not get executed right away
-      // but only when user taps a button to pay on-chain
+      // Executed when user taps a button to pay on-chain
       val fallback = Address.fromString(app.params, adr)
       val tryMSat = Try(pr.amount.get)
 

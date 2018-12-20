@@ -29,7 +29,7 @@
 
             <CheckBox
                 style="@style/Info"
-                android:layout_marginTop="25dp"
+                android:layout_marginTop="15dp"
                 android:layout_gravity="center"
                 android:id="@+id/gDriveBackups"
                 android:layout_width="wrap_content"
@@ -39,27 +39,21 @@
             <TextView
                 style="@style/Info"
                 android:layout_gravity="center"
-                android:layout_marginBottom="25dp"
+                android:layout_marginBottom="15dp"
                 android:id="@+id/gDriveBackupState"
-                android:layout_width="wrap_content"
-                android:onClick="onBluetooth"/>
+                android:layout_width="wrap_content"/>
 
             <View style="@style/GrayDivider"/>
 
             <CheckBox
                 style="@style/Info"
-                android:layout_marginTop="25dp"
-                android:layout_gravity="center"
-                android:id="@+id/bluetoothConnect"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
+                android:text="@string/sets_bluetooth"
                 android:layout_width="wrap_content"
-                android:text="@string/sets_bluetooth"/>
-
-            <TextView
-                style="@style/Info"
+                android:id="@+id/bluetoothConnect"
                 android:layout_gravity="center"
-                android:id="@+id/bluetoothState"
-                android:layout_marginBottom="25dp"
-                android:layout_width="wrap_content"/>
+                android:onClick="onBluetooth"/>
 
             <View style="@style/GrayDivider"/>
 

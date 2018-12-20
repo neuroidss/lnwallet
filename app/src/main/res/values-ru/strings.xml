@@ -81,21 +81,13 @@
     <string name="gdrive_failed">Не получилось сохранить бекап</string>
     <string name="sets_gdrive">Бекапы каналов в GDrive</string>
 
-    <!-- Bluetooth -->
-    <string name="bluetooth_connected">Подключен %1$s</string>
-    <string name="bluetooth_connecting">Подключение %1$s</string>
-    <string name="bluetooth_failure">Не получилось %1$s</string>
-    <string name="bluetooth_searching">Идет поиск устройств&#8230;</string>
-    <string name="bluetooth_disabled">Bluetooth отключен</string>
-    <string name="bluetooth_done">Поиск устройств завершен</string>
-
     <!-- menu and fab -->
     <string name="sets_set_fiat">Выбрать валюту</string>
     <string name="sets_choose_unit">Выбрать Биткоин-юнит</string>
     <string name="sets_manage_olympus">Настроить бекап-сервера</string>
     <string name="sets_chan_recover">Восстановитель каналов</string>
     <string name="sets_migrator">Сохранить файл-снапшот</string>
-    <string name="sets_bluetooth">Настроить Bluetooth</string>
+    <string name="sets_bluetooth">Разрешить Bluetooth</string>
     <string name="sets_mnemonic">Мнемонический код</string>
     <string name="sets_rescan">Рескан блокчейна</string>
 
