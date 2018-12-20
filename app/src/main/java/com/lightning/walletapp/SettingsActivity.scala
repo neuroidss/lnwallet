@@ -36,7 +36,6 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
   lazy val gDriveBackups = findViewById(R.id.gDriveBackups).asInstanceOf[CheckBox]
   lazy val gDriveBackupState = findViewById(R.id.gDriveBackupState).asInstanceOf[TextView]
   lazy val bluetoothConnect = findViewById(R.id.bluetoothConnect).asInstanceOf[CheckBox]
-  lazy val bluetoothState = findViewById(R.id.bluetoothState).asInstanceOf[TextView]
 
   lazy val exportWalletSnapshot = findViewById(R.id.exportWalletSnapshot).asInstanceOf[Button]
   lazy val chooseBitcoinUnit = findViewById(R.id.chooseBitcoinUnit).asInstanceOf[Button]
