@@ -5,6 +5,8 @@ import com.lightning.walletapp.ln.wire._
 import com.lightning.walletapp.ln.Scripts._
 import com.lightning.walletapp.ln.crypto.ShaChain._
 import com.lightning.walletapp.ln.crypto.Generators._
+
+import fr.acinq.eclair.transactions.TransactionUtils
 import fr.acinq.bitcoin.Crypto.{Point, PublicKey, Scalar}
 import scala.util.{Success, Try}
 
@@ -83,7 +85,7 @@ object Helpers {
       val theirDustIsHigherThanOurs: Boolean = commitments.localParams.dustLimit < commitments.remoteParams.dustLimitSat
       val dustLimit = if (theirDustIsHigherThanOurs) commitments.remoteParams.dustLimitSat else commitments.localParams.dustLimit
 
-      val closing: ClosingTx =
+      val closing =
         makeClosingTx(commitments.commitInput, local, remote, dustLimit,
           closingFee, commitments.localCommit.spec, commitments.localParams.isFunder)
 
@@ -104,7 +106,7 @@ object Helpers {
       val toLocalOutput = if (toLocalAmount < dustLimit) Nil else TxOut(toLocalAmount, localScriptPubKey) :: Nil
       val input = TxIn(commitTxInput.outPoint, BinaryData.empty, sequence = 0xffffffffL) :: Nil
       val tx = Transaction(2, input, toLocalOutput ++ toRemoteOutput, lockTime = 0)
-      ClosingTx(commitTxInput, LexicographicalOrdering sort tx)
+      ClosingTx(commitTxInput, TransactionUtils sort tx)
     }
 
     def claimCurrentLocalCommitTxOutputs(commitments: Commitments, bag: PaymentInfoBag) = {

@@ -5,12 +5,13 @@ import fr.acinq.bitcoin.Crypto._
 import fr.acinq.bitcoin.Protocol._
 import com.softwaremill.quicklens._
 
-import scala.util.Try
-import java.nio.ByteOrder
-import scala.language.postfixOps
-import com.lightning.walletapp.ln.wire.UpdateAddHtlc
-import fr.acinq.bitcoin.SigVersion.SIGVERSION_WITNESS_V0
 import ScriptFlags.STANDARD_SCRIPT_VERIFY_FLAGS
+import fr.acinq.bitcoin.SigVersion.SIGVERSION_WITNESS_V0
+import fr.acinq.eclair.transactions.TransactionUtils
+import com.lightning.walletapp.ln.wire.UpdateAddHtlc
+import scala.language.postfixOps
+import java.nio.ByteOrder
+import scala.util.Try
 
 
 object Scripts { me =>
@@ -287,24 +288,24 @@ object Scripts { me =>
     val toLocalDelayedOutput = if (localSat < localDustLimit) Nil else TxOut(localSat, Script pay2wsh redeem) :: Nil
     val toRemoteOutput = if (remoteSat < localDustLimit) Nil else TxOut(remoteSat, Script pay2wpkh remotePaymentPubkey) :: Nil
 
-    val htlcOfferedOutputs = trimOfferedHtlcs(dustLimit = localDustLimit, spec) map { add =>
+    val htlcOfferedOutputsAndCLTV = trimOfferedHtlcs(dustLimit = localDustLimit, spec) map { add =>
       val offered = htlcOffered(localHtlcPubkey, remoteHtlcPubkey, localRevocationPubkey, add.hash160)
-      TxOut(add.amount, Script pay2wsh offered)
-    }
+      TxOut(add.amount, Script pay2wsh offered) -> add.expiry
+    } toMap
 
     val htlcReceivedOutputs = trimReceivedHtlcs(dustLimit = localDustLimit, spec) map { add =>
-      val received = htlcReceived(localHtlcPubkey, remoteHtlcPubkey, localRevocationPubkey, add.hash160, add.expiry)
-      TxOut(add.amount, Script pay2wsh received)
+      val redeemScript = htlcReceived(localHtlcPubkey, remoteHtlcPubkey, localRevocationPubkey, add.hash160, add.expiry)
+      TxOut(add.amount, Script pay2wsh redeemScript)
     }
 
     // Make an obscured tx number as defined in BOLT #3 (a 48 bits integer) which we can use in case of contract breach
     val txNumber = obscuredCommitTxNumber(commitTxNumber, localIsFunder, localPaymentBasePoint, remotePaymentBasePoint)
     val (sequence, locktime) = encodeTxNumber(txNumber)
 
-    val outs = toLocalDelayedOutput ++ toRemoteOutput ++ htlcOfferedOutputs ++ htlcReceivedOutputs
-    val in = TxIn(commitTxInput.outPoint, Array.emptyByteArray, sequence = sequence) :: Nil
-    val tx = Transaction(version = 2, in, outs, lockTime = locktime)
-    CommitTx(commitTxInput, LexicographicalOrdering sort tx)
+    val in = TxIn(commitTxInput.outPoint, Array.emptyByteArray, sequence) :: Nil
+    val outs = toLocalDelayedOutput ++ toRemoteOutput ++ htlcOfferedOutputsAndCLTV.keys ++ htlcReceivedOutputs
+    val tx = TransactionUtils.sortByBIP69AndCLTV(Transaction(version = 2, in, outs, locktime), htlcOfferedOutputsAndCLTV)
+    CommitTx(commitTxInput, tx)
   }
 
   // Concrete templates
