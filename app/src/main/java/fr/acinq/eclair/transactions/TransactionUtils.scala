@@ -1,57 +1,41 @@
 package fr.acinq.eclair.transactions
 
-import fr.acinq.bitcoin._
-import scala.annotation.tailrec
-
 
 object TransactionUtils {
-  private def isLessThan(a: OutPoint, b: OutPoint): Boolean =
-    if (a.txid == b.txid) a.index < b.index
-    else lexicographicalOrder(a.txid, b.txid) < 0
+  import fr.acinq.bitcoin._
 
-  private def isLessThan(a: TxIn, b: TxIn): Boolean = isLessThan(a.outPoint, b.outPoint)
+  case class CltvOptTxOut(cltvOpt: Option[Long], txOut: TxOut)
+  def sort(tx: Transaction): Transaction = LexicographicalOrdering.sort(tx)
 
-  private def isLessOrCLTV(a: (TxOut, Option[Long]), b: (TxOut, Option[Long])): Boolean = {
-    val amountComparison = compareAmounts(a._1.amount, b._1.amount)
-    if(amountComparison != 0){
-      amountComparison < 0
-    } else {
-      val lexicographicalComparison = lexicographicalOrder(a._1.publicKeyScript, b._1.publicKeyScript)
-      if(lexicographicalComparison == 0 && a._2.isDefined && b._2.isDefined) {
-        a._2.get < b._2.get // compare the CLTVs
-      } else {
-        lexicographicalComparison < 0
-      }
+  private def isLessThan(input1: TxIn, input2: TxIn): Boolean =
+    isLessThan(input1.outPoint, input2.outPoint)
+
+  private def isLessThan(output1: OutPoint, output2: OutPoint): Boolean =
+    if (output1.txid == output2.txid) output1.index < output2.index
+    else lexicographicalOrder(output1.txid, output2.txid) < 0
+
+  private def isLessOrCLTV(a: CltvOptTxOut, b: CltvOptTxOut) = {
+    val amountComparison = a.txOut.amount.compare(b.txOut.amount)
+
+    if (amountComparison != 0) amountComparison < 0 else {
+      val lexGraphComparsion = lexicographicalOrder(a.txOut.publicKeyScript, b.txOut.publicKeyScript)
+      if (lexGraphComparsion == 0 && a.cltvOpt.isDefined && b.cltvOpt.isDefined) a.cltvOpt.get < b.cltvOpt.get
+      else lexGraphComparsion < 0
     }
   }
 
-  private def compareAmounts(a: Satoshi, b: Satoshi): Int = a.amount.compareTo(b.amount)
-
-  @tailrec
-  private def lexicographicalOrder(a: Seq[Byte], b: Seq[Byte]): Int = {
-    if (a.isEmpty && b.isEmpty) 0
-    else if (a.isEmpty) 1
-    else if (b.isEmpty) -1
+  type SeqByte = Seq[Byte]
+  private def lexicographicalOrder(a: SeqByte, b: SeqByte): Int =
+    if (a.isEmpty && b.isEmpty) 0 else if (a.isEmpty) 1 else if (b.isEmpty) -1
     else if (a.head == b.head) lexicographicalOrder(a.tail, b.tail)
     else (a.head & 0xff).compareTo(b.head & 0xff)
-  }
 
-  /**
-    *
-    * @param tx input transaction
-    * @return the input tx with inputs and outputs sorted in lexicographical order
-    */
-  def sort(tx: Transaction): Transaction = LexicographicalOrdering.sort(tx)
-
-  def sortByBIP69AndCLTV(tx: Transaction, offeredHtlcAndCltv:Map[TxOut,Long]): Transaction = {
-    val tempMap = offeredHtlcAndCltv.map { case (txOut, cltv) => (txOut.publicKeyScript, (txOut, Some(cltv))) }
-
-    // transaction outputs with optionally a CLTV value attached, only outputs corresponding to offered HTLCs will have it.
-    val txOutsAndCLTV_opt = tx.txOut.map { out => tempMap.getOrElse(out.publicKeyScript, (out, None)) }
-
-    tx.copy(
-      txIn = tx.txIn.sortWith(isLessThan),
-      txOut = txOutsAndCLTV_opt.sortWith(isLessOrCLTV).map(_._1)
-    )
+  type TxOutCltvMap = Map[TxOut, Long]
+  def sortByBIP69AndCLTV(tx: Transaction, offeredHtlcAndCltv: TxOutCltvMap): Transaction = {
+    // Transaction outputs with optionally a CLTV value attached, only outputs corresponding to offered HTLCs will have it
+    val tempMap = for (Tuple2(txOut, cltv) <- offeredHtlcAndCltv) yield txOut.publicKeyScript -> CltvOptTxOut(Some(cltv), txOut)
+    val cltvOptTxOuts = for (txOut <- tx.txOut) yield tempMap.getOrElse(default = CltvOptTxOut(None, txOut), key = txOut.publicKeyScript)
+    val sortedTxOuts = for (cltvOptTxOut <- cltvOptTxOuts sortWith isLessOrCLTV) yield cltvOptTxOut.txOut
+    tx.copy(txIn = tx.txIn sortWith isLessThan, txOut = sortedTxOuts)
   }
 }
