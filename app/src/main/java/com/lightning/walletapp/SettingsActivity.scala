@@ -32,10 +32,11 @@ import java.util.Date
 import java.io.File
 
 
-class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
+class SettingsActivity extends TimerActivity with HumanTimeDisplay {
   lazy val gDriveBackups = findViewById(R.id.gDriveBackups).asInstanceOf[CheckBox]
-  lazy val gDriveBackupState = findViewById(R.id.gDriveBackupState).asInstanceOf[TextView]
   lazy val bluetoothConnect = findViewById(R.id.bluetoothConnect).asInstanceOf[CheckBox]
+  lazy val gDriveBackupState = findViewById(R.id.gDriveBackupState).asInstanceOf[TextView]
+  lazy val bluetoothBondedDevice = findViewById(R.id.bluetoothBondedDevice).asInstanceOf[TextView]
 
   lazy val exportWalletSnapshot = findViewById(R.id.exportWalletSnapshot).asInstanceOf[Button]
   lazy val chooseBitcoinUnit = findViewById(R.id.chooseBitcoinUnit).asInstanceOf[Button]
@@ -44,7 +45,7 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
   lazy val manageOlympus = findViewById(R.id.manageOlympus).asInstanceOf[Button]
   lazy val rescanWallet = findViewById(R.id.rescanWallet).asInstanceOf[Button]
   lazy val viewMnemonic = findViewById(R.id.viewMnemonic).asInstanceOf[Button]
-  lazy val host = me
+  lazy val host = this
 
   override def onActivityResult(reqCode: Int, resultCode: Int, result: Intent) = reqCode match {
     case 102 if resultCode == Activity.RESULT_OK => checkBackup(GoogleSignIn.getSignedInAccountFromIntent(result).getResult)
@@ -59,7 +60,7 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
 
   override def onOptionsItemSelected(m: MenuItem) = {
     val walletManual = Uri parse "http://lightning-wallet.com"
-    me startActivity new Intent(Intent.ACTION_VIEW, walletManual)
+    this startActivity new Intent(Intent.ACTION_VIEW, walletManual)
     true
   }
 
@@ -89,25 +90,26 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
 
   def onGDrive(cb: View) = {
     def check(client: GoogleSignInClient) =
-      obsOnIO.map(_ => GDrive signInAccount me) foreach {
+      obsOnIO.map(_ => GDrive signInAccount this) foreach {
         case Some(signedInAccount) => checkBackup(signedInAccount)
         case _ => startActivityForResult(client.getSignInIntent, 102)
       }
 
-    if (gDriveBackups.isChecked) check(GDrive signInAttemptClient me) else {
+    if (gDriveBackups.isChecked) check(GDrive signInAttemptClient this) else {
       app.prefs.edit.putBoolean(AbstractKit.GDRIVE_ENABLED, false).commit
-      GDrive.signInAttemptClient(me).revokeAccess
+      GDrive.signInAttemptClient(this).revokeAccess
       updateBackupView
     }
   }
 
   def onBluetooth(cb: View) = {
-
+    app.prefs.edit.putBoolean(AbstractKit.BLUETOOTH_ENABLED, bluetoothConnect.isChecked).commit
+    if (bluetoothConnect.isChecked && !app.bluetooth.isEnabled) app.bluetooth showEnableDialog this
   }
 
   def INIT(s: Bundle) = if (app.isAlive) {
-    me setContentView R.layout.activity_settings
-    me initToolbar findViewById(R.id.toolbar).asInstanceOf[Toolbar]
+    this setContentView R.layout.activity_settings
+    this initToolbar findViewById(R.id.toolbar).asInstanceOf[Toolbar]
     getSupportActionBar setSubtitle "App version 0.3-91"
     getSupportActionBar setTitle wallet_settings
     updateBackupView
@@ -125,8 +127,8 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
       }
 
       lst setOnItemClickListener onTap(updateFiatType)
-      lst setAdapter new ArrayAdapter(me, singleChoice, fiatHumanNames.toArray)
-      showForm(negBuilder(dialog_ok, me getString sets_set_fiat, form).create)
+      lst setAdapter new ArrayAdapter(this, singleChoice, fiatHumanNames.toArray)
+      showForm(negBuilder(dialog_ok, this getString sets_set_fiat, form).create)
       lst.setItemChecked(fiatCodes.toList indexOf fiatCode, true)
     }
 
@@ -146,19 +148,19 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
         Option(FragWallet.worker).foreach(_.updTitle.run)
       }
 
-      showForm(negBuilder(dialog_ok, me getString sets_choose_unit, form).create)
-      lst setAdapter new ArrayAdapter(me, singleChoice, allDenoms)
+      showForm(negBuilder(dialog_ok, this getString sets_choose_unit, form).create)
+      lst setAdapter new ArrayAdapter(this, singleChoice, allDenoms)
       lst setOnItemClickListener onTap(updateDenomination)
       lst.setItemChecked(currentDenom, true)
     }
 
     manageOlympus setOnClickListener onButtonTap {
       // Just show a list of available Olympus servers
-      me goTo classOf[OlympusActivity]
+      this goTo classOf[OlympusActivity]
     }
 
     rescanWallet setOnClickListener onButtonTap {
-      val bld = baseTextBuilder(me getString sets_rescan_ok).setTitle(me getString sets_rescan)
+      val bld = baseTextBuilder(this getString sets_rescan_ok).setTitle(this getString sets_rescan)
       mkCheckForm(alert => rm(alert)(go), none, bld, dialog_ok, dialog_cancel)
 
       def go = try {
@@ -172,11 +174,11 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
 
     viewMnemonic setOnClickListener onButtonTap {
       // Can be accessed here and from page button
-      me viewMnemonic null
+      this viewMnemonic null
     }
 
     exportWalletSnapshot setOnClickListener onButtonTap {
-      val bld = me baseTextBuilder getString(migrator_usage_warning).html
+      val bld = this baseTextBuilder getString(migrator_usage_warning).html
       mkCheckForm(alert => rm(alert)(proceed), none, bld, dialog_next, dialog_cancel)
       def proceed = <(createZygote, onFail)(none)
 
@@ -194,10 +196,10 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
         val savedFile = new File(walletSnapshotFilePath, name)
         Files.write(encoded.require.toByteArray, savedFile)
 
-        val fileURI = FileProvider.getUriForFile(me, "com.lightning.walletapp", savedFile)
+        val fileURI = FileProvider.getUriForFile(this, "com.lightning.walletapp", savedFile)
         val share = new Intent setAction Intent.ACTION_SEND addFlags Intent.FLAG_GRANT_READ_URI_PERMISSION
         share.putExtra(Intent.EXTRA_STREAM, fileURI).setDataAndType(fileURI, getContentResolver getType fileURI)
-        me startActivity Intent.createChooser(share, "Choose an app")
+        this startActivity Intent.createChooser(share, "Choose an app")
       }
     }
 
@@ -227,13 +229,14 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay { me =>
         recover
       }
 
-      val bld = baseTextBuilder(me getString channel_recovery_info)
+      val bld = baseTextBuilder(this getString channel_recovery_info)
       mkCheckForm(alert => rm(alert)(go), none, bld, dialog_next, dialog_cancel)
     }
 
     // Wallet may not see incoming txs immediately if channel gets broken while not synched
+    bluetoothConnect setChecked app.prefs.getBoolean(AbstractKit.BLUETOOTH_ENABLED, false)
     recoverFunds.setEnabled(ChannelManager.currentBlocksLeft < broadcaster.blocksPerDay)
-  } else me exitTo classOf[MainActivity]
+  } else this exitTo classOf[MainActivity]
 
   def updateBackupView = {
     val isUserEnabled = app.prefs.getBoolean(AbstractKit.GDRIVE_ENABLED, true)

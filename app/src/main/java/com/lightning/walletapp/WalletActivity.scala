@@ -9,20 +9,23 @@ import com.lightning.walletapp.R.string._
 import com.lightning.walletapp.ln.Tools._
 import com.lightning.walletapp.ln.Channel._
 import com.lightning.walletapp.lnutils.ImplicitConversions._
+import android.support.v4.app.{ActivityCompat, FragmentStatePagerAdapter}
 import com.lightning.walletapp.lnutils.IconGetter.{bigFont, scrWidth}
 import com.lightning.walletapp.ln.wire.{NodeAnnouncement, Started}
 import org.bitcoinj.core.{Address, TxWrap}
 
 import com.lightning.walletapp.ln.RoutingInfoTag.PaymentRoute
 import com.lightning.walletapp.lnutils.JsonHttpUtils.obsOnIO
-import android.support.v4.app.FragmentStatePagerAdapter
 import com.lightning.walletapp.Denomination.coin2MSat
 import org.ndeftools.util.activity.NfcReaderActivity
 import com.lightning.walletapp.helper.AwaitService
+import android.support.v4.content.ContextCompat
 import com.github.clans.fab.FloatingActionMenu
 import com.lightning.walletapp.lnutils.GDrive
 import android.support.v7.widget.SearchView
 import fr.acinq.bitcoin.Crypto.PublicKey
+import android.bluetooth.BluetoothDevice
+import android.content.pm.PackageManager
 import android.text.format.DateFormat
 import fr.acinq.bitcoin.MilliSatoshi
 import org.bitcoinj.uri.BitcoinURI
@@ -96,18 +99,23 @@ trait HumanTimeDisplay {
   }
 }
 
-class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
-  lazy val awaitServiceIntent: Intent = new Intent(me, AwaitService.classof)
+class WalletActivity extends NfcReaderActivity with ScanActivity {
+  lazy val awaitServiceIntent: Intent = new Intent(this, AwaitService.classof)
   lazy val floatingActionMenu = findViewById(R.id.fam).asInstanceOf[FloatingActionMenu]
   lazy val slidingFragmentAdapter = new FragmentStatePagerAdapter(getSupportFragmentManager) {
     def getItem(currentFragmentPos: Int) = if (0 == currentFragmentPos) new FragWallet else new FragScan
     def getCount = 2
   }
 
-  override def onDestroy = wrap(super.onDestroy)(stopDetecting)
-  override def onResume = wrap(super.onResume)(me returnToBase null)
+  override def onDestroy = wrap(super.onDestroy) {
+    // Disable NFC and bluetooth broadcast receiver
+    app.bluetooth.onStop
+    stopDetecting
+  }
+
+  override def onResume = wrap(super.onResume)(this returnToBase null)
   override def onOptionsItemSelected(m: MenuItem): Boolean = runAnd(true) {
-    if (m.getItemId == R.id.actionSettings) me goTo classOf[SettingsActivity]
+    if (m.getItemId == R.id.actionSettings) this goTo classOf[SettingsActivity]
   }
 
   override def onBackPressed = {
@@ -121,21 +129,21 @@ class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
   override def onCreateOptionsMenu(menu: Menu) = {
     // Called after fragLN sets toolbar as actionbar
     getMenuInflater.inflate(R.menu.wallet, menu)
-    // Updated here to make sure it's present
     FragWallet.worker setupSearch menu
     true
   }
 
   def INIT(state: Bundle) = if (app.isAlive) {
-    me setContentView R.layout.activity_double_pager
+    this setContentView R.layout.activity_double_pager
     walletPager setAdapter slidingFragmentAdapter
+    app.bluetooth.onStart
     setDetecting(true)
     initNfc(state)
 
     val unknownOrFailed = app.prefs.getLong(AbstractKit.GDRIVE_LAST_SAVE, 0L) <= 0L
     val needsCheck = !GDrive.isMissing(app) && app.prefs.getBoolean(AbstractKit.GDRIVE_ENABLED, true) && unknownOrFailed
-    if (needsCheck) obsOnIO.map(_ => GDrive signInAccount me).foreach(accountOpt => if (accountOpt.isEmpty) askGDriveSignIn)
-  } else me exitTo classOf[MainActivity]
+    if (needsCheck) obsOnIO.map(_ => GDrive signInAccount this).foreach(accountOpt => if (accountOpt.isEmpty) askGDriveSignIn)
+  } else this exitTo classOf[MainActivity]
 
   override def onActivityResult(reqCode: Int, resultCode: Int, results: Intent) = {
     val isGDriveSignInSuccessful = reqCode == 102 && resultCode == Activity.RESULT_OK
@@ -161,7 +169,7 @@ class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
   def checkTransData =
     app.TransData checkAndMaybeErase {
       // TransData value should be retained in both of these cases
-      case _: NodeAnnouncement => me goTo classOf[LNStartFundActivity]
+      case _: NodeAnnouncement => this goTo classOf[LNStartFundActivity]
       case _: Started => goStart
 
       case FragWallet.REDIRECT =>
@@ -173,24 +181,24 @@ class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
         // TransData value will be erased here
         lnLink.resolve.foreach(initConnection, none)
         app toast ln_url_resolving
-        me returnToBase null
+        this returnToBase null
 
       case address: Address =>
         // TransData value will be erased here
         FragWallet.worker.sendBtcPopup(address)(none)
-        me returnToBase null
+        this returnToBase null
 
       case uri: BitcoinURI =>
         // TransData value will be erased here
         val manager = FragWallet.worker.sendBtcPopup(uri.getAddress)(none)
         manager setSum scala.util.Try(uri.getAmount)
-        me returnToBase null
+        this returnToBase null
 
       case pr: PaymentRequest if ChannelManager.notClosingOrRefunding.nonEmpty =>
         // We have open or at least opening channels so show a form or message to user
         // TransData value will be erased here
         FragWallet.worker sendPayment pr
-        me returnToBase null
+        this returnToBase null
 
       case pr: PaymentRequest =>
         // TransData should be set to batch or null to erase previous
@@ -221,23 +229,23 @@ class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
     val maxCanReceive = MilliSatoshi(maxCanReceiveMsat)
 
     val reserveUnspent = getString(ln_receive_reserve) format coloredOut(-maxCanReceive) // Negate to cancel out a minus
-    val lnReceiveText = if (operationalChannels.isEmpty) getString(ln_receive_option).format(me getString ln_no_open_chans)
-      else if (operationalChannelsWithRoutes.isEmpty) getString(ln_receive_option).format(me getString ln_receive_6conf)
+    val lnReceiveText = if (operationalChannels.isEmpty) getString(ln_receive_option).format(this getString ln_no_open_chans)
+      else if (operationalChannelsWithRoutes.isEmpty) getString(ln_receive_option).format(this getString ln_receive_6conf)
       else if (maxCanReceiveMsat < 0L) getString(ln_receive_option).format(reserveUnspent)
-      else getString(ln_receive_option).format(me getString ln_receive_ok)
+      else getString(ln_receive_option).format(this getString ln_receive_ok)
 
     val options = Array(lnReceiveText.html, getString(btc_receive_option).html)
     val lst = getLayoutInflater.inflate(R.layout.frag_center_list, null).asInstanceOf[ListView]
-    val alert = showForm(negBuilder(dialog_cancel, me getString action_coins_receive, lst).create)
+    val alert = showForm(negBuilder(dialog_cancel, this getString action_coins_receive, lst).create)
 
     lst setDivider null
     lst setDividerHeight 0
     lst setOnItemClickListener onTap { case 0 => offChain case 1 => onChain }
-    lst setAdapter new ArrayAdapter(me, R.layout.frag_top_tip, R.id.titleTip, options)
+    lst setAdapter new ArrayAdapter(this, R.layout.frag_top_tip, R.id.titleTip, options)
 
     def onChain = rm(alert) {
       app.TransData.value = app.kit.currentAddress
-      me goTo classOf[RequestActivity]
+      this goTo classOf[RequestActivity]
     }
 
     def offChain = rm(alert) {
@@ -248,10 +256,10 @@ class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
 
   def goSendPayment(top: View) = {
     val fragCenterList = getLayoutInflater.inflate(R.layout.frag_center_list, null).asInstanceOf[ListView]
-    val alert = showForm(negBuilder(dialog_cancel, me getString action_coins_send, fragCenterList).create)
+    val alert = showForm(negBuilder(dialog_cancel, this getString action_coins_send, fragCenterList).create)
     val options = Array(send_scan_qr, send_paste_payment_request, send_hivemind_deposit).map(res => getString(res).html)
     fragCenterList setOnItemClickListener onTap { case 0 => scanQR case 1 => pasteRequest case 2 => depositHivemind }
-    fragCenterList setAdapter new ArrayAdapter(me, R.layout.frag_top_tip, R.id.titleTip, options)
+    fragCenterList setAdapter new ArrayAdapter(this, R.layout.frag_top_tip, R.id.titleTip, options)
     fragCenterList setDividerHeight 0
     fragCenterList setDivider null
 
@@ -273,11 +281,57 @@ class WalletActivity extends NfcReaderActivity with ScanActivity { me =>
   }
 
   val tokensPrice = MilliSatoshi(1000000L)
-  def goStart = me goTo classOf[LNStartActivity]
-  def goOps(top: View) = me goTo classOf[LNOpsActivity]
+  def goStart = this goTo classOf[LNStartActivity]
+  def goOps(top: View) = this goTo classOf[LNOpsActivity]
   def goAddChannel(top: View) = if (app.olympus.backupExhausted) {
     val humanPrice = s"${coloredIn apply tokensPrice} <font color=#999999>${msatInFiatHuman apply tokensPrice}</font>"
-    val warn = baseTextBuilder(getString(tokens_warn).format(humanPrice).html).setCustomTitle(me getString action_ln_open)
+    val warn = baseTextBuilder(getString(tokens_warn).format(humanPrice).html).setCustomTitle(this getString action_ln_open)
     mkCheckForm(alert => rm(alert)(goStart), none, warn, dialog_ok, dialog_cancel)
   } else goStart
+
+  app.bluetooth setDiscoveryCallback new me.aflak.bluetooth.DiscoveryCallback {
+    override def onError(message: String) = println(s"-- onError: $message")
+
+    override def onDevicePaired(device: BluetoothDevice) = println(s"-- onDevicePaired: ${device}")
+
+    override def onDiscoveryStarted = println(s"-- onDiscoveryStarted")
+
+    override def onDeviceUnpaired(device: BluetoothDevice) = println(s"-- onDeviceUnpaired: ${device}")
+
+    override def onDiscoveryFinished = println(s"-- onDiscoveryFinished")
+
+    override def onDeviceFound(device: BluetoothDevice) = println(s"-- onDeviceFound: ${device}")
+  }
+
+  val meselff = this
+
+  app.bluetooth setBluetoothCallback new me.aflak.bluetooth.BluetoothCallback {
+    def onBluetoothTurningOn = none
+
+    def onBluetoothOn = {
+      if (ContextCompat.checkSelfPermission(meselff, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(meselff, Array(android.Manifest.permission.ACCESS_COARSE_LOCATION), 104)
+      }
+
+      app.bluetooth.startScanning
+    }
+
+    def onBluetoothTurningOff = none
+
+    def onBluetoothOff = println(s"--- onBluetoothOff")
+
+    def onUserDeniedActivation = none
+  }
+
+  app.bluetooth setDeviceCallback new me.aflak.bluetooth.DeviceCallback {
+    def onDeviceConnected(device: BluetoothDevice) = println(s"---- onDeviceConnected: ${device}")
+
+    def onDeviceDisconnected(device: BluetoothDevice, message: String) = println(s"---- onDeviceDisconnected: ${device}")
+
+    def onMessage(message: String) = none
+
+    def onError(message: String) = println(s"---- onError: $message")
+
+    def onConnectError(device: BluetoothDevice, message: String) = println(s"---- onConnectError: ${device}, $message")
+  }
 }

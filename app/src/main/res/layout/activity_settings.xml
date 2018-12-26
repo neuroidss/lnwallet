@@ -48,12 +48,18 @@
             <CheckBox
                 style="@style/Info"
                 android:layout_marginTop="15dp"
-                android:layout_marginBottom="15dp"
                 android:text="@string/sets_bluetooth"
                 android:layout_width="wrap_content"
                 android:id="@+id/bluetoothConnect"
                 android:layout_gravity="center"
                 android:onClick="onBluetooth"/>
+
+            <TextView
+                style="@style/Info"
+                android:layout_gravity="center"
+                android:layout_marginBottom="15dp"
+                android:id="@+id/bluetoothBondedDevice"
+                android:layout_width="wrap_content"/>
 
             <View style="@style/GrayDivider"/>
 

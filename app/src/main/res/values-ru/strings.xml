@@ -76,15 +76,19 @@
     <!-- GDrive backups -->
     <string name="gdrive_disabled">Бекапы в GDrive отключены</string>
     <string name="gdrive_not_present">Бекап пока отсутствует</string>
-    <string name="gdrive_last_saved">Последнее сохранение %1$s</string>
-    <string name="gdrive_failed">Не получилось сохранить бекап</string>
+    <string name="gdrive_failed">Не получилось сохранить</string>
     <string name="sets_gdrive">Бекапы каналов в GDrive</string>
+    <string name="gdrive_last_saved">Сохранено %1$s</string>
+
+    <!-- Bluetooth -->
+    <string name="bt_no_bond">Нет привязанных устройств</string>
+    <string name="bt_bonded">Привязан к %1$s</string>
 
     <!-- menu and fab -->
     <string name="sets_set_fiat">Выбрать валюту</string>
     <string name="sets_choose_unit">Выбрать Биткоин-юнит</string>
     <string name="sets_manage_olympus">Настроить бекап-сервера</string>
-    <string name="sets_bluetooth">Разрешить Bluetooth-подключение</string>
+    <string name="sets_bluetooth">Разрешить Bluetooth-платежи</string>
     <string name="sets_chan_recover">Восстановитель каналов</string>
     <string name="sets_migrator">Сохранить файл-снапшот</string>
     <string name="sets_mnemonic">Мнемонический код</string>

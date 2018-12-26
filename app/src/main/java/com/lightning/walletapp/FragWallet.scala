@@ -708,7 +708,7 @@ class FragWalletWorker(val host: WalletActivity, frag: View) extends SearchBar w
   }
 
   itemsList setOnItemClickListener onTap {
-    pos => adapter.getItem(pos - 1).generatePopup
+    pos => adapter.getItem(pos).generatePopup
   }
 
   itemsList setFooterDividersEnabled false

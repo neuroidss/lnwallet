@@ -35,7 +35,7 @@ public class Bluetooth {
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothSocket socket;
-    private BluetoothDevice device, devicePair;
+    private BluetoothDevice device;
     private BufferedReader input;
     private OutputStream out;
 
@@ -65,21 +65,19 @@ public class Bluetooth {
     }
 
     public void onStart(){
-        if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
-            bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-            if(bluetoothManager!=null) {
-                bluetoothAdapter = bluetoothManager.getAdapter();
-            }
-        }
-        else{
-            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+
+        if(bluetoothManager!=null) {
+            bluetoothAdapter = bluetoothManager.getAdapter();
         }
 
         context.registerReceiver(bluetoothReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+        context.registerReceiver(pairReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
     }
 
     public void onStop(){
         context.unregisterReceiver(bluetoothReceiver);
+        context.unregisterReceiver(pairReceiver);
     }
 
     public void showEnableDialog(Activity activity){
@@ -239,42 +237,6 @@ public class Bluetooth {
         bluetoothAdapter.cancelDiscovery();
     }
 
-    public void pair(BluetoothDevice device){
-        context.registerReceiver(pairReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
-        devicePair=device;
-        try {
-            Method method = device.getClass().getMethod("createBond", (Class[]) null);
-            method.invoke(device, (Object[]) null);
-        } catch (final Exception e) {
-            if(discoveryCallback!=null) {
-                ThreadHelper.run(runOnUi, activity, new Runnable() {
-                    @Override
-                    public void run() {
-                        discoveryCallback.onError(e.getMessage());
-                    }
-                });
-            }
-        }
-    }
-
-    public void unpair(BluetoothDevice device) {
-        context.registerReceiver(pairReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
-        devicePair=device;
-        try {
-            Method method = device.getClass().getMethod("removeBond", (Class[]) null);
-            method.invoke(device, (Object[]) null);
-        } catch (final Exception e) {
-            if(discoveryCallback!=null) {
-                ThreadHelper.run(runOnUi, activity, new Runnable() {
-                    @Override
-                    public void run() {
-                        discoveryCallback.onError(e.getMessage());
-                    }
-                });
-            }
-        }
-    }
-
     private class ReceiveThread extends Thread implements Runnable{
         public void run(){
             String msg;
@@ -370,6 +332,7 @@ public class Bluetooth {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+
             if(action!=null) {
                 switch (action) {
                     case BluetoothAdapter.ACTION_STATE_CHANGED:
@@ -431,9 +394,9 @@ public class Bluetooth {
             if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
                 final int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
                 final int prevState	= intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR);
+                final BluetoothDevice devicePair = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                 if (state == BluetoothDevice.BOND_BONDED && prevState == BluetoothDevice.BOND_BONDING) {
-                    context.unregisterReceiver(pairReceiver);
                     if(discoveryCallback!=null){
                         ThreadHelper.run(runOnUi, activity, new Runnable() {
                             @Override
@@ -443,7 +406,6 @@ public class Bluetooth {
                         });
                     }
                 } else if (state == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED){
-                    context.unregisterReceiver(pairReceiver);
                     if(discoveryCallback!=null){
                         ThreadHelper.run(runOnUi, activity, new Runnable() {
                             @Override
