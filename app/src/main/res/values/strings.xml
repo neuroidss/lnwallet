@@ -85,8 +85,9 @@
     <string name="sets_gdrive">Backup channels to GDrive</string>
 
     <!-- Bluetooth -->
-    <string name="bt_no_bond">No bonded devices</string>
-    <string name="bt_bonded">Bonded to %1$s</string>
+    <string name="bt_select"><![CDATA[Bond a paired device<br><br><small>Choose wisely as bonded device will be able to send payments using Bluetooth connection</small>]]></string>
+    <string name="bt_no_paired">No paired devices are present, try again once at least one device is paired</string>
+    <string name="bt_no_bond">No bonded device is present</string>
 
     <!-- menu and fab -->
     <string name="sets_set_fiat">Set Fiat currency</string>

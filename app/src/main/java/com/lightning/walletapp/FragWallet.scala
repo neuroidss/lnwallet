@@ -21,7 +21,6 @@ import com.lightning.walletapp.lnutils.ImplicitConversions._
 import android.os.{Bundle, Handler}
 import scala.util.{Failure, Success, Try}
 import org.bitcoinj.wallet.{SendRequest, Wallet}
-import android.content.{DialogInterface, Intent}
 import android.database.{ContentObserver, Cursor}
 import android.support.v4.content.{ContextCompat, Loader}
 import fr.acinq.bitcoin.{BinaryData, Crypto, MilliSatoshi}
@@ -43,6 +42,7 @@ import android.support.v7.widget.Toolbar
 import org.bitcoinj.script.ScriptPattern
 import android.support.v4.app.Fragment
 import android.app.AlertDialog
+import android.content.Intent
 import android.net.Uri
 
 
@@ -60,7 +60,7 @@ class FragWallet extends Fragment {
 
 class FragWalletWorker(val host: WalletActivity, frag: View) extends SearchBar with HumanTimeDisplay { me =>
   import host.{UITask, onButtonTap, showForm, negBuilder, baseBuilder, negTextBuilder, str2View, onTap, onFail}
-  import host.{TxProcessor, mkCheckForm, rm, <, mkCheckFormNeutral}
+  import host.{TxProcessor, onDismiss, mkCheckForm, rm, <, mkCheckFormNeutral}
 
   val fiatRate = frag.findViewById(R.id.fiatRate).asInstanceOf[TextView]
   val fiatBalance = frag.findViewById(R.id.fiatBalance).asInstanceOf[TextView]
@@ -604,7 +604,7 @@ class FragWalletWorker(val host: WalletActivity, frag: View) extends SearchBar w
 
         for (askedSum <- pr.amount) rateManager setSum Try(askedSum)
         val killOpt = for (rep <- JointNode.relayPeerReports.headOption) yield relayLink start rep.chan.data.announce
-        bld setOnDismissListener new DialogInterface.OnDismissListener { def onDismiss(dialog: DialogInterface) = for (off <- killOpt) off.run }
+        bld setOnDismissListener onDismiss { for (terminateWebsocketUpdatesRunnable <- killOpt) terminateWebsocketUpdatesRunnable.run }
         mkCheckFormNeutral(sendAttempt, none, alert => rm(alert) { for (onChain <- runnableOpt) onChain.run }, bld, dialog_pay, dialog_cancel,
           if (pr.amount.exists(askedSum => maxCappedSend >= askedSum) || runnableOpt.isEmpty) -1 else dialog_pay_onchain)
       }

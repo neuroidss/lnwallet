@@ -13,6 +13,7 @@ import com.lightning.walletapp.Denomination._
 import com.lightning.walletapp.lnutils.ImplicitConversions._
 import org.bitcoinj.wallet.Wallet.ExceededMaxTransactionSize
 import org.bitcoinj.wallet.Wallet.CouldNotAdjustDownwards
+import android.content.DialogInterface.OnDismissListener
 import android.widget.AdapterView.OnItemClickListener
 import concurrent.ExecutionContext.Implicits.global
 import com.lightning.walletapp.ln.LNParams.minDepth
@@ -24,7 +25,6 @@ import fr.acinq.bitcoin.MilliSatoshi
 import language.implicitConversions
 import org.bitcoinj.script.Script
 import scala.concurrent.Future
-import android.content.Intent
 import android.os.Bundle
 
 import android.content.DialogInterface.{BUTTON_NEGATIVE, BUTTON_NEUTRAL, BUTTON_POSITIVE}
@@ -32,6 +32,7 @@ import com.lightning.walletapp.lnutils.IconGetter.{maxDialog, scrWidth}
 import com.lightning.walletapp.ln.Tools.{none, runAnd, wrap}
 import com.lightning.walletapp.lnutils.{GDrive, RatesSaver}
 import org.bitcoinj.wallet.SendRequest.{emptyWallet, to}
+import android.content.{DialogInterface, Intent}
 import org.bitcoinj.wallet.{SendRequest, Wallet}
 import scala.util.{Failure, Success, Try}
 import android.app.{AlertDialog, Dialog}
@@ -181,8 +182,10 @@ trait TimerActivity extends AppCompatActivity { me =>
 
   // Utils
   def onButtonTap(exec: => Unit) = new OnClickListener { def onClick(view: View) = exec }
-  def onTap(listItemTapRunner: Int => Unit): OnItemClickListener = new OnItemClickListener {
-    def onItemClick(a: AdapterView[_], view: View, pos: Int, id: Long) = listItemTapRunner(pos)
+  def onDismiss(exec: => Unit) = new OnDismissListener { def onDismiss(dlg: DialogInterface) = exec }
+
+  def onTap(exec: Int => Unit) = new OnItemClickListener {
+    def onItemClick(a: AdapterView[_], view: View, pos: Int, id: Long) = exec(pos)
   }
 
   def share(exportedTextData: String): Unit = {

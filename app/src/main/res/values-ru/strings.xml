@@ -81,8 +81,9 @@
     <string name="gdrive_last_saved">Сохранено %1$s</string>
 
     <!-- Bluetooth -->
+    <string name="bt_select"><![CDATA[Привяжите устройство<br><br><small>Выбирайте осторожно, потому что привязанное устройство сможет платить через Bluetooth</small>]]></string>
+    <string name="bt_no_paired">Нет спаренных устройств, попробуйте еще раз после создания пары</string>
     <string name="bt_no_bond">Нет привязанных устройств</string>
-    <string name="bt_bonded">Привязан к %1$s</string>
 
     <!-- menu and fab -->
     <string name="sets_set_fiat">Выбрать валюту</string>

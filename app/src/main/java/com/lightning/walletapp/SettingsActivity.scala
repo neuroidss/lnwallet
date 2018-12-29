@@ -3,6 +3,7 @@ package com.lightning.walletapp
 import android.widget._
 import com.lightning.walletapp.ln._
 import com.lightning.walletapp.Utils._
+import scala.collection.JavaConverters._
 import com.lightning.walletapp.ln.Tools._
 import com.lightning.walletapp.R.string._
 import com.lightning.walletapp.ln.Channel._
@@ -102,16 +103,37 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay {
     }
   }
 
-  def onBluetooth(cb: View) = {
-    app.prefs.edit.putBoolean(AbstractKit.BLUETOOTH_ENABLED, bluetoothConnect.isChecked).commit
-    if (bluetoothConnect.isChecked && !app.bluetooth.isEnabled) app.bluetooth showEnableDialog this
+  def onBluetooth(cb: View) = bluetoothConnect.isChecked match {
+    case true if !app.bluetooth.isEnabled => runAnd(disableBluetooth)(app.bluetooth showEnableDialog this)
+    case true if app.bluetooth.getPairedDevices.isEmpty => runAnd(disableBluetooth)(app toast bt_no_paired)
+    case true => chooseBluetoothDevice
+    case false => disableBluetooth
+  }
+
+  def chooseBluetoothDevice = {
+    val devices = for (device <- app.bluetooth.getPairedDevices.asScala) yield device.getName
+    val lst = getLayoutInflater.inflate(R.layout.frag_center_list, null).asInstanceOf[ListView]
+    lst setAdapter new ArrayAdapter(this, R.layout.frag_top_tip, R.id.titleTip, devices.toArray)
+    val bld = negBuilder(dialog_cancel, getString(bt_select).html, lst)
+    bld setOnDismissListener onDismiss(disableBluetooth)
+    lst setDividerHeight 0
+    lst setDivider null
+
+    val alert = showForm(bld.create)
+    lst setOnItemClickListener onTap { pos =>
+      app.prefs.edit.putBoolean(AbstractKit.BLUETOOTH_ENABLED, true).commit
+      app.prefs.edit.putString(AbstractKit.BLUETOOTH_LAST_BONDED, devices apply pos).commit
+      alert setOnDismissListener onDismiss(none) // Prevent disabling when alert is closed
+      rm(alert)(updateBluetoothView)
+    }
   }
 
   def INIT(s: Bundle) = if (app.isAlive) {
     this setContentView R.layout.activity_settings
     this initToolbar findViewById(R.id.toolbar).asInstanceOf[Toolbar]
-    getSupportActionBar setSubtitle "App version 0.3-91"
+    getSupportActionBar setSubtitle "Wallet version 0.3-91"
     getSupportActionBar setTitle wallet_settings
+    updateBluetoothView
     updateBackupView
 
     setFiatCurrency setOnClickListener onButtonTap {
@@ -234,9 +256,20 @@ class SettingsActivity extends TimerActivity with HumanTimeDisplay {
     }
 
     // Wallet may not see incoming txs immediately if channel gets broken while not synched
-    bluetoothConnect setChecked app.prefs.getBoolean(AbstractKit.BLUETOOTH_ENABLED, false)
     recoverFunds.setEnabled(ChannelManager.currentBlocksLeft < broadcaster.blocksPerDay)
   } else this exitTo classOf[MainActivity]
+
+  def disableBluetooth = {
+    app.prefs.edit.putBoolean(AbstractKit.BLUETOOTH_ENABLED, false).commit
+    app.prefs.edit.remove(AbstractKit.BLUETOOTH_LAST_BONDED).commit
+    if (app.bluetooth.isConnected) app.bluetooth.disconnect
+    updateBluetoothView
+  }
+
+  def updateBluetoothView = {
+    bluetoothConnect setChecked app.prefs.getBoolean(AbstractKit.BLUETOOTH_ENABLED, false)
+    bluetoothBondedDevice setText app.prefs.getString(AbstractKit.BLUETOOTH_LAST_BONDED, this getString bt_no_bond)
+  }
 
   def updateBackupView = {
     val isUserEnabled = app.prefs.getBoolean(AbstractKit.GDRIVE_ENABLED, true)
