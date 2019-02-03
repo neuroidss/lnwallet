@@ -17,6 +17,7 @@ object OlympusTable extends Table {
   val updDataSql = s"UPDATE $table SET $data = ? WHERE $identifier = ?"
   val selectAllSql = s"SELECT * FROM $table ORDER BY $order ASC"
   val killSql = s"DELETE FROM $table WHERE $identifier = ?"
+  val updAllUrlSql = s"UPDATE $table SET $url = ?"
 
   val createSql = s"""
     CREATE TABLE IF NOT EXISTS $table (
@@ -153,7 +154,7 @@ object RevokedInfoTable extends Table {
 
 trait Table { val (id, fts) = "_id" -> "fts4" }
 class LNOpenHelper(context: Context, name: String)
-  extends SQLiteOpenHelper(context, name, null, 3) {
+  extends SQLiteOpenHelper(context, name, null, 5) {
 
   val base = getWritableDatabase
   // Note: BinaryData and PublicKey should always yield raw strings for this to work
@@ -179,13 +180,15 @@ class LNOpenHelper(context: Context, name: String)
 
     // Randomize an order of two available default servers
     val emptyData = CloudData(info = None, tokens = Vector.empty, acts = Vector.empty).toJson.toString
-    val dev: Array[AnyRef] = Array("test-server-1", "http://107.175.54.178:9003", emptyData, "1", "0", "0")
+    val dev: Array[AnyRef] = Array("test-server-1", "http://192.3.114.77:9203", emptyData, "1", "0", "0")
     dbs.execSQL(OlympusTable.newSql, dev)
   }
 
   def onUpgrade(dbs: SQLiteDatabase, v0: Int, v1: Int) = {
     // Should work even for updates across many version ranges
     // because each table and index has CREATE IF EXISTS prefix
+    val update: Array[AnyRef] = Array("http://192.3.114.77:9203")
+    dbs.execSQL(OlympusTable.updAllUrlSql, update)
     dbs execSQL RevokedInfoTable.createSql
     dbs execSQL OlympusLogTable.createSql
   }
